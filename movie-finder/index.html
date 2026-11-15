@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CineLumina — Buscador de Películas</title>
+  
+  <!-- Tipografía moderna y cinematográfica de Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+  
+  <!-- Estilos principales -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Fondo ambiental interactivo y dinámico -->
+  <div class="ambient-glow" aria-hidden="true">
+    <div class="glow-orb orb-1"></div>
+    <div class="glow-orb orb-2"></div>
+    <div class="glow-orb orb-3"></div>
+  </div>
+
+  <div class="app-layout">
+    
+    <!-- ENCABEZADO / NAVBAR -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-badge">
+          <span class="film-icon">🎬</span>
+        </div>
+        <div class="brand-text">
+          <h1 class="logo-title">Cine<span>Lumina</span></h1>
+          <p class="logo-subtitle">Explorador Cinematográfico & Series</p>
+        </div>
+      </div>
+
+      <!-- Selector de API / Ajustes (TVmaze abierta vs TMDB) -->
+      <div class="api-selector-bar">
+        <label for="api-source-select" class="api-label">
+          <span class="pulse-indicator"></span> Fuente:
+        </label>
+        <select id="api-source-select" class="api-select" title="Selecciona la API pública">
+          <option value="tvmaze" selected>TVmaze (Pública • Sin API Key)</option>
+          <option value="tmdb">The Movie Database (TMDB)</option>
+        </select>
+        <button id="api-config-btn" class="icon-button" title="Configuración de TMDB API Key" aria-label="Configuración de API">
+          ⚙️
+        </button>
+      </div>
+    </header>
+
+    <!-- ZONA HERO Y BÚSQUEDA -->
+    <main class="main-content">
+      <section class="hero-section">
+        <div class="hero-tagline">
+          <span class="highlight-badge">Explora • Descubre • Conecta</span>
+          <h2 class="hero-headline">Encuentra historias que despiertan tu imaginación.</h2>
+          <p class="hero-desc">Busca cualquier película o serie en tiempo real conectándote a APIs públicas mediante <code>fetch()</code> y manipulación dinámica del DOM.</p>
+        </div>
+
+        <!-- FORMULARIO DE BÚSQUEDA (Requerimiento Paso 1 & 2) -->
+        <form id="search-form" class="search-form" autocomplete="off">
+          <div class="search-box-wrapper">
+            <span class="search-icon" aria-hidden="true">🔍</span>
+            
+            <!-- Campo de entrada para escribir el nombre de la película -->
+            <input 
+              type="text" 
+              id="movie-input" 
+              class="search-input" 
+              placeholder="Escribe el nombre de una película... (ej. Inception, Batman, Dune)"
+              required
+              aria-label="Nombre de la película"
+            />
+            
+            <button type="button" id="clear-input-btn" class="clear-input-btn hidden" title="Borrar texto" aria-label="Limpiar campo">
+              ✕
+            </button>
+            
+            <!-- Botón que dice Buscar (Requerimiento Paso 1) -->
+            <button type="submit" id="search-btn" class="search-button">
+              <span class="btn-text">Buscar</span>
+              <span class="btn-arrow" aria-hidden="true">→</span>
+            </button>
+          </div>
+        </form>
+
+        <!-- Chips de sugerencias rápidas -->
+        <div class="quick-tags">
+          <span class="tags-label">Sugerencias:</span>
+          <button type="button" class="tag-chip" data-query="Interstellar">Interstellar</button>
+          <button type="button" class="tag-chip" data-query="The Batman">The Batman</button>
+          <button type="button" class="tag-chip" data-query="Dune">Dune</button>
+          <button type="button" class="tag-chip" data-query="Spider-Man">Spider-Man</button>
+          <button type="button" class="tag-chip" data-query="Breaking Bad">Breaking Bad</button>
+          <button type="button" class="tag-chip" data-query="El Padrino">El Padrino</button>
+        </div>
+      </section>
+
+      <!-- BARRA DE INFORMACIÓN Y ESTADO DE RESULTADOS -->
+      <section class="results-header-section" id="results-header" style="display: none;">
+        <div class="results-stats">
+          <h3 id="results-count-text">Películas encontradas</h3>
+          <span id="active-query-badge" class="query-badge"></span>
+        </div>
+        <div class="results-filter-view">
+          <span class="source-status-pill" id="current-source-pill">API: TVmaze</span>
+        </div>
+      </section>
+
+      <!-- ÁREA DE RESULTADOS (Paso 1: Espacio vacío donde se mostrarán los resultados) -->
+      <section class="results-viewport" id="results-section">
+        
+        <!-- Estado Inicial (Empty State acogedor con diseño creativo) -->
+        <div id="initial-state" class="state-container initial-card">
+          <div class="state-icon-wrapper">
+            <span class="ambient-emoji">🍿</span>
+          </div>
+          <h3>Tu catálogo cinematográfico te espera</h3>
+          <p>Escribe el título de una película arriba o selecciona una sugerencia rápida para consultar la API en tiempo real.</p>
+          <div class="tech-pills">
+            <span class="pill">⚡ Fetch API</span>
+            <span class="pill">📦 JSON Parsing</span>
+            <span class="pill">🎨 Dynamic DOM</span>
+            <span class="pill">🛡️ Robust Error Handling</span>
+          </div>
+        </div>
+
+        <!-- Estado de Carga (Skeleton Loaders animados) -->
+        <div id="loading-state" class="loading-grid hidden">
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+        </div>
+
+        <!-- Estado de Error / No Encontrado (Paso 4) -->
+        <div id="error-state" class="state-container error-card hidden">
+          <div class="state-icon-wrapper error-icon">
+            <span id="error-emoji">⚠️</span>
+          </div>
+          <h3 id="error-title">No se encontraron resultados</h3>
+          <p id="error-description">No pudimos encontrar ninguna película que coincida con tu búsqueda.</p>
+          <button type="button" id="retry-btn" class="action-btn">Reintentar</button>
+        </div>
+
+        <!-- Rejilla Dinámica de Resultados (Paso 3) -->
+        <div id="results-grid" class="movies-grid"></div>
+
+      </section>
+    </main>
+
+    <!-- FOOTER INFORMATIVO -->
+    <footer class="app-footer">
+      <p>Diseñado con pasión cinematográfica • Desarrollado con <strong>Vanilla JavaScript (ES6+)</strong>, <strong>CSS Variables</strong> y <strong>HTML5 Semántico</strong>.</p>
+    </footer>
+  </div>
+
+  <!-- MODAL DE DETALLE COMPLETO DE LA PELÍCULA -->
+  <div id="movie-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-card">
+      <button type="button" id="modal-close-btn" class="modal-close" aria-label="Cerrar ventana emergente">✕</button>
+      
+      <div class="modal-body">
+        <div class="modal-poster-wrapper">
+          <img id="modal-poster" src="" alt="Póster de la película">
+          <div class="modal-rating-badge" id="modal-rating-badge">
+            ⭐ <span id="modal-rating">0.0</span>
+          </div>
+        </div>
+        
+        <div class="modal-info">
+          <span id="modal-year" class="modal-year-pill">Año 2024</span>
+          <h2 id="modal-title" class="modal-title">Título de la Película</h2>
+          
+          <div class="modal-genres" id="modal-genres"></div>
+          
+          <div class="modal-synopsis-box">
+            <h4>Sinopsis Completa</h4>
+            <p id="modal-synopsis">Descripción de la película...</p>
+          </div>
+
+          <div class="modal-actions">
+            <a id="modal-external-link" href="#" target="_blank" rel="noopener noreferrer" class="action-btn">
+              Ver ficha oficial ↗
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE CONFIGURACIÓN DE API KEY (Para TMDB) -->
+  <div id="api-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+    <div class="modal-card api-config-card">
+      <button type="button" id="api-modal-close" class="modal-close" aria-label="Cerrar modal de configuración">✕</button>
+      <h3>Configuración de The Movie Database (TMDB)</h3>
+      <p class="modal-subtitle">TVmaze funciona directamente sin clave. Si deseas usar el catálogo oficial de TMDB, puedes ingresar tu API Key v3 gratuita:</p>
+      
+      <div class="input-group">
+        <label for="tmdb-key-input">TMDB API Key (v3 auth):</label>
+        <input type="text" id="tmdb-key-input" class="search-input" placeholder="Pega aquí tu API key de TMDB (32 caracteres)">
+      </div>
+
+      <div class="modal-actions-row">
+        <button type="button" id="save-api-key-btn" class="action-btn primary">Guardar Clave</button>
+        <button type="button" id="use-tvmaze-fallback-btn" class="action-btn secondary">Usar TVmaze (Sin clave)</button>
+      </div>
+
+      <small class="helper-text">
+        ¿No tienes clave de TMDB? Consigue una gratis en <a href="https://www.themoviedb.org/settings/api" target="_blank" rel="noopener noreferrer">themoviedb.org</a> en menos de 1 minuto, o usa TVmaze que no requiere registros.
+      </small>
+    </div>
+  </div>
+
+  <!-- Script principal de la aplicación -->
+  <script src="app.js"></script>
+</body>
+</html>
