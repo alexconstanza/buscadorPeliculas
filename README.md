@@ -95,3 +95,10 @@ No requiere instalación de librerías ni dependencias (cero dependencias extern
      npx serve .
      ```
    - Abre `http://localhost:8000` en tu navegador.
+  
+----
+## 🎨 Creador
+
+- **Nombre:**: Edgar Alexander Constanza Jovel.
+- **Grupo:**: Desarrollador Web Front End "WDFRT2".
+- **Actividad: **: Buscador de peliculas.
